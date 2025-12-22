@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>New Seven Star Travel & Tourism</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Premium Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+  <h1>New Seven Star Travel & Tourism</h1>
+  <p>Luxury Travel | Global Destinations | Trusted Excellence</p>
+</header>
+
+<nav>
+  <div class="hamburger" onclick="toggleMenu()">☰</div>
+  <div class="nav-inner" id="menu">
+    <button onclick="show('services')">Services</button>
+    <button onclick="show('adminLogin')">Admin</button>
+    <button onclick="show('search')">Ticket Status</button>
+  </div>
+</nav>
+
+<section id="services" class="active">
+  <div class="card">
+    <h2>Our Premium Services</h2>
+    <div class="services-grid">
+      <div>✈️ Airline Ticketing</div>
+      <div>🛂 Visa Assistance</div>
+      <div>🏨 Luxury Hotels</div>
+      <div>🌍 World Tours</div>
+      <div>📄 Documentation Support</div>
+    </div>
+  </div>
+</section>
+
+<section id="adminLogin">
+  <div class="card">
+    <h2>Admin Login</h2>
+    <input id="adminEmail" placeholder="Email">
+    <input type="password" id="adminPassword" placeholder="Password">
+    <button class="submit" onclick="login()">Login</button>
+    <p id="loginMsg" style="color:red"></p>
+  </div>
+</section>
+
+<section id="adminPanel">
+  <div class="card">
+    <h2>Add Customer</h2>
+    <input id="custName" placeholder="Customer Name">
+    <input id="passport" placeholder="Passport Number">
+    <select id="status">
+      <option>Processing</option>
+      <option>Approved</option>
+      <option>Ticket Issued</option>
+      <option>Rejected</option>
+    </select>
+    <input type="file" id="ticketFile">
+    <button class="submit" onclick="save()">Save</button>
+  </div>
+
+  <div class="card">
+    <h3>Customer Records</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Passport</th><th>Status</th><th>Ticket</th>
+          </tr>
+        </thead>
+        <tbody id="records"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="search">
+  <div class="card">
+    <h2>Check Ticket Status</h2>
+    <input id="searchName" placeholder="Name">
+    <input id="searchPassport" placeholder="Passport">
+    <button class="submit" onclick="search()">Search</button>
+  </div>
+</section>
+
+<div id="popup">
+  <h2>Ticket Status</h2>
+  <p id="ticketStatus"></p>
+  <a id="downloadLink" href="#" download>Download</a><br><br>
+  <button onclick="popup.style.display='none'">Close</button>
+</div>
+
+<footer>
+  © 2025 New Seven Star Travel & Tourism
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
