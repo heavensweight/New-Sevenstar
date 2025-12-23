@@ -1,14 +1,12 @@
-// Initialize Supabase client with your provided credentials
+// Supabase client initialization
 const supabaseUrl = 'https://wneingzbhbluvcndyhrq.supabase.co';  // Your Supabase project URL
 const supabaseKey = 'sb_publishable_sKf39c8Gu5Zk_N5LBCrfhg_yN1kGAmL';  // Your publishable API key
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// Admin credentials (hardcoded for now)
-const ADMIN_EMAIL = "newseven@azim";
-const ADMIN_PASSWORD = "12345678";
+// Admin login functionality using Supabase Auth
+async function login() {
+  console.log("Login button clicked");
 
-// Admin login functionality (no Supabase used for login)
-function login() {
   const adminEmail = document.getElementById("adminEmail").value;
   const adminPassword = document.getElementById("adminPassword").value;
   const loginMsg = document.getElementById("loginMsg");
@@ -19,17 +17,27 @@ function login() {
     return;
   }
 
-  // Check if the entered credentials match the hardcoded ones
-  if (adminEmail === ADMIN_EMAIL && adminPassword === ADMIN_PASSWORD) {
-    loginMsg.innerText = "Login successful!";
-    show("adminPanel"); // Show admin panel after successful login
-    loadFromSupabase(); // Load customer data from Supabase after login
-  } else {
-    loginMsg.innerText = "Invalid login credentials! Please try again.";
+  try {
+    // Authenticate with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: adminEmail,
+      password: adminPassword,
+    });
+
+    if (error) {
+      loginMsg.innerText = `Login failed: ${error.message}`;
+    } else {
+      loginMsg.innerText = "Login successful!";
+      show("adminPanel"); // Show admin panel after successful login
+      loadFromSupabase(); // Load customer data from Supabase after login
+    }
+  } catch (err) {
+    console.error('Error during login: ', err);
+    loginMsg.innerText = "Error during login. Please try again.";
   }
 }
 
-// Fetch customer data from Supabase
+// Fetch customer data from Supabase after login
 async function loadFromSupabase() {
   const { data, error } = await supabase
     .from('customers')  // Replace with your actual table name
@@ -164,6 +172,7 @@ async function deleteCustomer(index) {
       .from('customers')
       .delete()
       .match({ id: customer.id });  // Assuming 'id' is the primary key of the table
+
     if (error) {
       console.error('Error deleting customer:', error);
     } else {
@@ -212,29 +221,4 @@ function toggleMenu() {
 function show(id) {
   document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-  document.getElementById("menu").classList.remove("show");
 }
-
-// Open location in Google Maps (for the footer address)
-function viewMap() {
-  const address = "New Seven Star Travel and Tourism, Opposite of City Exchange, 615 Zone 53, Building 85 Umm al Dome North Muaither, Doha, Qatar";
-  const url = `https://www.google.com/maps?q=${encodeURIComponent(address)}`;
-  window.open(url, "_blank");
-}
-
-// Real-time updates for customer records (Supabase real-time subscription)
-supabase
-  .from('customers')
-  .on('INSERT', payload => {
-    console.log('New customer added:', payload);
-    loadFromSupabase();  // Reload data after a new customer is added
-  })
-  .on('UPDATE', payload => {
-    console.log('Customer updated:', payload);
-    loadFromSupabase();  // Reload data after a customer is updated
-  })
-  .on('DELETE', payload => {
-    console.log('Customer deleted:', payload);
-    loadFromSupabase();  // Reload data after a customer is deleted
-  })
-  .subscribe();
