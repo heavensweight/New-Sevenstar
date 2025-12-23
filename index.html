@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>New Seven Star Travel & Tourism</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>New Seven Star Travel & Tourism</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Premium Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Premium Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.18.0/dist/umd/supabase.min.js"></script>
 </head>
 
 <body>
@@ -23,7 +24,7 @@
   <div class="nav-inner" id="menu">
     <button onclick="show('services')">Services</button>
     <button onclick="show('adminLogin')">Admin</button>
-    <button onclick="show('search')">Ticket Status</button>
+    <button onclick="show('search')">Ticket Status Check</button>
   </div>
 </nav>
 
@@ -43,7 +44,7 @@
 <section id="adminLogin">
   <div class="card">
     <h2>Admin Login</h2>
-    <input id="adminEmail" placeholder="Email">
+    <input id="adminEmail" placeholder="Email" type="email">
     <input type="password" id="adminPassword" placeholder="Password">
     <button class="submit" onclick="login()">Login</button>
     <p id="loginMsg" style="color:red"></p>
@@ -52,7 +53,7 @@
 
 <section id="adminPanel">
   <div class="card">
-    <h2>Add Customer</h2>
+    <h2>Add/Edit Customer</h2>
     <input id="custName" placeholder="Customer Name">
     <input id="passport" placeholder="Passport Number">
     <select id="status">
@@ -62,7 +63,7 @@
       <option>Rejected</option>
     </select>
     <input type="file" id="ticketFile">
-    <button class="submit" onclick="save()">Save</button>
+    <button class="submit" onclick="save()">Save Customer</button>
   </div>
 
   <div class="card">
@@ -71,7 +72,7 @@
       <table>
         <thead>
           <tr>
-            <th>Name</th><th>Passport</th><th>Status</th><th>Ticket</th>
+            <th>Name</th><th>Passport</th><th>Status</th><th>Ticket</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="records"></tbody>
@@ -97,7 +98,10 @@
 </div>
 
 <footer>
-  © 2025 New Seven Star Travel & Tourism
+  <p>© 2025 New Seven Star Travel & Tourism</p>
+  <p>New Seven Star Travel and Tourism, Opposite of City Exchange, 615 Zone 53, Building 85 Umm al Dome North Muaither, Doha, Qatar</p>
+  <p>Phone: +974 3075 8125</p>
+  <button onclick="viewMap()">View on Map</button>
 </footer>
 
 <script src="script.js"></script>
