@@ -1,224 +1,291 @@
-// Supabase client initialization
-const supabaseUrl = 'https://wneingzbhbluvcndyhrq.supabase.co';  // Your Supabase project URL
-const supabaseKey = 'sb_publishable_sKf39c8Gu5Zk_N5LBCrfhg_yN1kGAmL';  // Your publishable API key
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+/*********************************
+ * CHECK SUPABASE LOADED (IMPORTANT)
+ *********************************/
+if (!window.supabase) {
+  alert("Supabase library failed to load. Check CDN.");
+}
 
-// Admin login functionality using Supabase Auth
+/*********************************
+ * SUPABASE INITIALIZATION
+ *********************************/
+const supabaseUrl = "https://wneingzbhbluvcndyhrq.supabase.co";
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduZWluZ3piaGJsdXZjbmR5aHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzU1MTUsImV4cCI6MjA4MjA1MTUxNX0.hUkfvUQFmURQdI2ZzvUas-1yo7TIPTqOEg9GtyoDnIA";
+
+const supabaseClient = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
+let customerRecords = [];
+
+/*********************************
+ * ADMIN LOGIN
+ *********************************/
 async function login() {
-  console.log("Login button clicked");
-
-  const adminEmail = document.getElementById("adminEmail").value;
-  const adminPassword = document.getElementById("adminPassword").value;
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value.trim();
   const loginMsg = document.getElementById("loginMsg");
 
-  // Check if both email and password fields are filled
-  if (!adminEmail || !adminPassword) {
-    loginMsg.innerText = "Please enter both email and password.";
+  if (!email || !password) {
+    loginMsg.innerText = "Please enter email and password.";
     return;
   }
+
+  loginMsg.innerText = "Logging in...";
 
   try {
-    // Authenticate with Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: adminEmail,
-      password: adminPassword,
-    });
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password,
+      });
 
     if (error) {
-      loginMsg.innerText = `Login failed: ${error.message}`;
-    } else {
-      loginMsg.innerText = "Login successful!";
-      show("adminPanel"); // Show admin panel after successful login
-      loadFromSupabase(); // Load customer data from Supabase after login
-    }
-  } catch (err) {
-    console.error('Error during login: ', err);
-    loginMsg.innerText = "Error during login. Please try again.";
-  }
-}
-
-// Fetch customer data from Supabase after login
-async function loadFromSupabase() {
-  const { data, error } = await supabase
-    .from('customers')  // Replace with your actual table name
-    .select('*');
-
-  if (error) {
-    console.error('Error fetching data:', error);
-  } else {
-    customerRecords = data;
-    load();  // Update the table with customer data
-  }
-}
-
-// Save or update customer data in Supabase
-async function save() {
-  const custName = document.getElementById("custName");
-  const passport = document.getElementById("passport");
-  const status = document.getElementById("status");
-  const ticketFile = document.getElementById("ticketFile");
-
-  const name = custName.value.trim();
-  const pass = passport.value.trim().toUpperCase();
-
-  if (!name || !pass) {
-    alert("Please fill in all required fields.");
-    return;
-  }
-
-  let ticketUrl = null;
-
-  // If there's a file selected, upload it to Supabase storage
-  if (ticketFile.files.length > 0) {
-    const file = ticketFile.files[0];
-    const { data, error: uploadError } = await supabase.storage
-      .from('Tickets')  // Updated to your "Tickets" storage bucket name
-      .upload(`tickets/${file.name}`, file);
-
-    if (uploadError) {
-      console.error('Error uploading file:', uploadError);
+      loginMsg.innerText = error.message;
       return;
     }
 
-    ticketUrl = data.Key;  // Store the file URL after upload
+    loginMsg.innerText = "Login successful!";
+    show("adminPanel");
+    loadFromSupabase();
+  } catch (err) {
+    alert("LOGIN ERROR: " + err.message);
   }
-
-  // Prepare customer data object
-  const customerData = {
-    name,
-    passport: pass,
-    status: status.value,
-    ticket: ticketUrl,  // Store ticket file URL or null if no file
-  };
-
-  // Check if we're editing an existing customer
-  const isEdit = custName.dataset.editIndex !== undefined;
-  if (isEdit) {
-    // Edit the existing customer record in Supabase
-    const { data, error } = await supabase
-      .from('customers')
-      .upsert([customerData]);
-
-    if (error) {
-      console.error('Error saving data:', error);
-    }
-  } else {
-    // Insert a new customer record into Supabase
-    const { data, error } = await supabase
-      .from('customers')
-      .insert([customerData]);
-
-    if (error) {
-      console.error('Error saving data:', error);
-    }
-  }
-
-  // Clear input fields after saving
-  custName.value = '';
-  passport.value = '';
-  ticketFile.value = '';
-
-  // Reload customer data from Supabase after saving
-  loadFromSupabase();
 }
 
-// Load customer data into the table
-async function load() {
-  const recordsTable = document.getElementById("records");
+/*********************************
+ * LOAD CUSTOMERS
+ *********************************/
+async function loadFromSupabase() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("customers")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  // Clear existing rows
-  recordsTable.innerHTML = "";
+    if (error) {
+      alert("LOAD ERROR: " + error.message);
+      return;
+    }
 
-  if (customerRecords.length === 0) {
-    recordsTable.innerHTML = "<tr><td colspan='5'>No records found</td></tr>";
+    customerRecords = data || [];
+    renderTable();
+  } catch (err) {
+    alert("LOAD EXCEPTION: " + err.message);
+  }
+}
+
+/*********************************
+ * SAVE / UPDATE CUSTOMER
+ *********************************/
+async function save() {
+  const nameInput = document.getElementById("custName");
+  const passportInput = document.getElementById("passport");
+  const statusInput = document.getElementById("status");
+  const fileInput = document.getElementById("ticketFile");
+
+  const name = nameInput.value.trim();
+  const passport = passportInput.value.trim().toUpperCase();
+  const status = statusInput.value;
+
+  if (!name || !passport) {
+    alert("Name and Passport are required.");
     return;
   }
 
-  // Populate the table with customer records
-  recordsTable.innerHTML = customerRecords.map((c, index) => `
-    <tr>
+  let ticketPath = null;
+
+  try {
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const filename = `${passport}_${Date.now()}_${file.name}`;
+
+      const { data, error } = await supabaseClient.storage
+        .from("Tickets")
+        .upload(`tickets/${filename}`, file, { upsert: true });
+
+      if (error) {
+        alert("UPLOAD ERROR: " + error.message);
+        return;
+      }
+
+      ticketPath = data.path;
+    }
+
+    const payload = {
+      name,
+      passport,
+      status,
+    };
+
+    if (ticketPath) payload.ticket = ticketPath;
+
+    const editId = nameInput.dataset.editId;
+
+    let result;
+    if (editId) {
+      result = await supabaseClient
+        .from("customers")
+        .update(payload)
+        .eq("id", editId);
+    } else {
+      result = await supabaseClient.from("customers").insert([payload]);
+    }
+
+    if (result.error) {
+      alert("SAVE ERROR: " + result.error.message);
+      return;
+    }
+
+    nameInput.value = "";
+    passportInput.value = "";
+    fileInput.value = "";
+    delete nameInput.dataset.editId;
+
+    loadFromSupabase();
+  } catch (err) {
+    alert("SAVE EXCEPTION: " + err.message);
+  }
+}
+
+/*********************************
+ * RENDER TABLE
+ *********************************/
+function renderTable() {
+  const tbody = document.getElementById("records");
+  tbody.innerHTML = "";
+
+  if (customerRecords.length === 0) {
+    tbody.innerHTML =
+      "<tr><td colspan='5'>No records found</td></tr>";
+    return;
+  }
+
+  customerRecords.forEach((c) => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
       <td>${c.name}</td>
       <td>${c.passport}</td>
-      <td class="status-${c.status.replace(/\s/g, '\\ ')}">${c.status}</td>
-      <td>
-        ${c.status === 'Ticket Issued' && c.ticket ? `<a href="https://wneingzbhbluvcndyhrq.supabase.co/storage/v1/object/public/Tickets/${c.ticket}" target="_blank">Download</a>` : '-'}
+      <td class="status-${c.status.replace(/\s/g, "\\ ")}">
+        ${c.status}
       </td>
       <td>
-        <button onclick="editCustomer(${index})">Edit</button>
-        <button onclick="deleteCustomer(${index})">Delete</button>
+        ${
+          c.status === "Ticket Issued" && c.ticket
+            ? `<a href="${ticketUrl(c.ticket)}" target="_blank">Download</a>`
+            : "-"
+        }
       </td>
-    </tr>
-  `).join("");
+      <td>
+        <button onclick="editCustomer('${c.id}')">Edit</button>
+        <button onclick="deleteCustomer('${c.id}')">Delete</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
 }
 
-// Edit customer data (for updating)
-function editCustomer(index) {
-  const customer = customerRecords[index];
+/*********************************
+ * EDIT CUSTOMER
+ *********************************/
+function editCustomer(id) {
+  const c = customerRecords.find((x) => x.id === id);
+  if (!c) return;
 
-  // Pre-fill the input fields with the existing data
-  document.getElementById("custName").value = customer.name;
-  document.getElementById("passport").value = customer.passport;
-  document.getElementById("status").value = customer.status;
+  document.getElementById("custName").value = c.name;
+  document.getElementById("passport").value = c.passport;
+  document.getElementById("status").value = c.status;
+  document.getElementById("custName").dataset.editId = c.id;
 
-  // Mark as editing
-  document.getElementById("custName").dataset.editIndex = index;
+  show("adminPanel");
 }
 
-// Delete customer record from Supabase
-async function deleteCustomer(index) {
-  const customer = customerRecords[index];
-  if (confirm(`Are you sure you want to delete customer ${customer.name}?`)) {
-    const { data, error } = await supabase
-      .from('customers')
+/*********************************
+ * DELETE CUSTOMER
+ *********************************/
+async function deleteCustomer(id) {
+  if (!confirm("Delete this customer?")) return;
+
+  try {
+    const { error } = await supabaseClient
+      .from("customers")
       .delete()
-      .match({ id: customer.id });  // Assuming 'id' is the primary key of the table
+      .eq("id", id);
 
     if (error) {
-      console.error('Error deleting customer:', error);
-    } else {
-      loadFromSupabase();  // Reload the table after deletion
+      alert("DELETE ERROR: " + error.message);
+      return;
     }
+
+    loadFromSupabase();
+  } catch (err) {
+    alert("DELETE EXCEPTION: " + err.message);
   }
 }
 
-// Search customer status from the database
-async function search() {
-  const searchName = document.getElementById("searchName");
-  const searchPassport = document.getElementById("searchPassport");
+/*********************************
+ * SEARCH (PUBLIC)
+ *********************************/
+function search() {
+  const name = document
+    .getElementById("searchName")
+    .value.trim()
+    .toLowerCase();
+  const passport = document
+    .getElementById("searchPassport")
+    .value.trim()
+    .toUpperCase();
 
-  const n = searchName.value.toLowerCase();
-  const p = searchPassport.value.toUpperCase();
+  const c = customerRecords.find(
+    (x) => x.name.toLowerCase() === name && x.passport === passport
+  );
 
-  const customer = customerRecords.find(c => c.name.toLowerCase() === n && c.passport === p);
-
-  if (customer) {
-    const popup = document.getElementById("popup");
-    const ticketStatus = document.getElementById("ticketStatus");
-    const downloadLink = document.getElementById("downloadLink");
-
-    popup.style.display = "block";
-    ticketStatus.innerText = "Status: " + customer.status;
-
-    // If ticket is issued and exists, show the download link
-    if (customer.status === "Ticket Issued" && customer.ticket) {
-      downloadLink.href = `https://wneingzbhbluvcndyhrq.supabase.co/storage/v1/object/public/Tickets/${customer.ticket}`;
-      downloadLink.download = customer.ticket;
-      downloadLink.style.display = "inline-block";
-    } else {
-      downloadLink.style.display = "none";
-    }
-  } else {
+  if (!c) {
     alert("No record found");
+    return;
   }
+
+  document.getElementById("ticketStatus").innerText =
+    "Status: " + c.status;
+
+  const link = document.getElementById("downloadLink");
+
+  if (c.status === "Ticket Issued" && c.ticket) {
+    link.href = ticketUrl(c.ticket);
+    link.style.display = "inline-block";
+  } else {
+    link.style.display = "none";
+  }
+
+  document.getElementById("popup").style.display = "block";
 }
 
-// Toggle menu visibility (mobile menu)
+/*********************************
+ * HELPERS
+ *********************************/
+function ticketUrl(path) {
+  return `${supabaseUrl}/storage/v1/object/public/Tickets/${path}`;
+}
+
 function toggleMenu() {
   document.getElementById("menu").classList.toggle("show");
 }
 
-// Show specific sections
 function show(id) {
-  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+  document
+    .querySelectorAll("section")
+    .forEach((s) => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+}
+
+function viewMap() {
+  const address =
+    "New Seven Star Travel and Tourism, Doha, Qatar";
+  window.open(
+    `https://www.google.com/maps?q=${encodeURIComponent(address)}`,
+    "_blank"
+  );
 }
