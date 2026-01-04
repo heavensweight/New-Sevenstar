@@ -12,7 +12,7 @@ window.onload = function () {
    * SUPABASE INITIALIZATION
    *********************************/
   const supabaseUrl = "https://wneingzbhbluvcndyhrq.supabase.co";
-  const supabaseKey = "YOUR_ANON_KEY"; // <-- use anon key for testing/public
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduZWluZ3piaGJsdXZjbmR5aHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzU1MTUsImV4cCI6MjA4MjA1MTUxNX0.hUkfvUQFmURQdI2ZzvUas-1yo7TIPTqOEg9GtyoDnIA"; // <-- use anon key for testing/public
   const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   let customerRecords = [];
